@@ -1,0 +1,7 @@
+username,full_name,email,role
+admin,Administrator,admin@example.com,admin
+alice,Alice Johnson,alice@example.com,candidate
+bob,Bob Martinez,bob@example.com,candidate
+carol,Carol Singh,carol@example.com,candidate
+dave,Dave Okafor,dave@example.com,candidate
+eve,Eve Chen,eve@example.com,candidate

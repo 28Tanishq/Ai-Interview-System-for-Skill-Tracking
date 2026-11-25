@@ -1,0 +1,42 @@
+{
+  "Python": [
+    {"difficulty": "Beginner", "question": "What is the difference between a list and a tuple in Python?", "keywords": ["mutable", "immutable", "ordered", "hashable", "performance", "dictionary key"]},
+    {"difficulty": "Beginner", "question": "Explain what a dictionary is and how you would loop through its keys and values.", "keywords": ["key", "value", "hash", "items", "lookup", "unique"]},
+    {"difficulty": "Intermediate", "question": "What are decorators in Python and when would you use one?", "keywords": ["function", "wrapper", "higher-order", "logging", "caching", "functools", "closure"]},
+    {"difficulty": "Intermediate", "question": "Explain generators and the yield keyword. How do they differ from lists?", "keywords": ["lazy", "memory", "iterator", "yield", "next", "stateful"]},
+    {"difficulty": "Advanced", "question": "How does Python's Global Interpreter Lock affect multithreading, and how would you work around it?", "keywords": ["GIL", "cpu-bound", "io-bound", "multiprocessing", "asyncio", "thread", "cpython"]},
+    {"difficulty": "Advanced", "question": "Explain how Python manages memory, including reference counting and garbage collection.", "keywords": ["reference count", "cycle", "garbage collector", "generation", "weakref", "heap"]}
+  ],
+  "SQL": [
+    {"difficulty": "Beginner", "question": "What is the difference between INNER JOIN and LEFT JOIN?", "keywords": ["matching", "all rows", "null", "left table", "intersection"]},
+    {"difficulty": "Beginner", "question": "Explain the difference between WHERE and HAVING.", "keywords": ["group by", "aggregate", "filter", "before", "after", "rows"]},
+    {"difficulty": "Intermediate", "question": "What is database normalization and why is it used?", "keywords": ["redundancy", "1nf", "2nf", "3nf", "anomaly", "integrity", "foreign key"]},
+    {"difficulty": "Intermediate", "question": "How do indexes work and what are their trade-offs?", "keywords": ["b-tree", "lookup", "write", "storage", "selectivity", "query plan", "clustered"]},
+    {"difficulty": "Advanced", "question": "Explain window functions and give an example such as ranking rows within a group.", "keywords": ["over", "partition by", "row_number", "rank", "order by", "running total", "frame"]},
+    {"difficulty": "Advanced", "question": "Describe ACID properties and transaction isolation levels.", "keywords": ["atomicity", "consistency", "isolation", "durability", "dirty read", "phantom", "serializable"]}
+  ],
+  "Machine Learning": [
+    {"difficulty": "Beginner", "question": "What is the difference between supervised and unsupervised learning?", "keywords": ["labeled", "unlabeled", "classification", "regression", "clustering", "target"]},
+    {"difficulty": "Beginner", "question": "What is overfitting and how can you prevent it?", "keywords": ["training", "generalization", "regularization", "cross-validation", "more data", "dropout", "early stopping"]},
+    {"difficulty": "Intermediate", "question": "Explain the bias-variance trade-off.", "keywords": ["bias", "variance", "underfitting", "overfitting", "complexity", "error", "generalize"]},
+    {"difficulty": "Intermediate", "question": "How do precision, recall and F1-score differ, and when would you prioritize recall?", "keywords": ["true positive", "false positive", "false negative", "imbalanced", "harmonic", "medical", "threshold"]},
+    {"difficulty": "Advanced", "question": "Explain how gradient boosting works and how it differs from random forests.", "keywords": ["sequential", "residual", "weak learner", "bagging", "boosting", "learning rate", "trees"]},
+    {"difficulty": "Advanced", "question": "How would you deploy and monitor a machine learning model in production?", "keywords": ["drift", "monitoring", "api", "versioning", "retraining", "latency", "a/b", "pipeline"]}
+  ],
+  "Data Structures & Algorithms": [
+    {"difficulty": "Beginner", "question": "What is the difference between a stack and a queue?", "keywords": ["lifo", "fifo", "push", "pop", "enqueue", "dequeue", "order"]},
+    {"difficulty": "Beginner", "question": "Explain Big-O notation with a couple of examples.", "keywords": ["time complexity", "worst case", "o(n)", "o(1)", "o(log n)", "growth", "scalability"]},
+    {"difficulty": "Intermediate", "question": "How does a hash table work, and how are collisions handled?", "keywords": ["hash function", "bucket", "chaining", "open addressing", "load factor", "o(1)", "resize"]},
+    {"difficulty": "Intermediate", "question": "Compare binary search trees with balanced trees such as AVL or red-black trees.", "keywords": ["sorted", "height", "rotation", "o(log n)", "skewed", "balance", "insertion"]},
+    {"difficulty": "Advanced", "question": "Explain dynamic programming and illustrate it with a problem such as the knapsack or Fibonacci.", "keywords": ["overlapping subproblems", "optimal substructure", "memoization", "tabulation", "recurrence", "state"]},
+    {"difficulty": "Advanced", "question": "How would you detect a cycle in a directed graph, and what is its complexity?", "keywords": ["dfs", "visited", "recursion stack", "topological", "o(v+e)", "back edge", "kahn"]}
+  ],
+  "Web Development": [
+    {"difficulty": "Beginner", "question": "What happens when you type a URL into a browser and press enter?", "keywords": ["dns", "tcp", "http", "server", "render", "html", "response"]},
+    {"difficulty": "Beginner", "question": "What is the difference between GET and POST requests?", "keywords": ["idempotent", "body", "query string", "safe", "cache", "data", "url"]},
+    {"difficulty": "Intermediate", "question": "Explain REST API principles and common HTTP status codes.", "keywords": ["stateless", "resource", "200", "201", "400", "401", "404", "500", "verbs"]},
+    {"difficulty": "Intermediate", "question": "What is CORS and why does it exist?", "keywords": ["origin", "same-origin", "preflight", "headers", "browser", "security", "access-control"]},
+    {"difficulty": "Advanced", "question": "How would you design authentication and session management for a web application securely?", "keywords": ["jwt", "session", "cookie", "httponly", "hashing", "bcrypt", "csrf", "oauth", "https"]},
+    {"difficulty": "Advanced", "question": "How would you scale a web application to handle a sudden 100x traffic increase?", "keywords": ["load balancer", "cache", "cdn", "horizontal", "database", "queue", "stateless", "replica"]}
+  ]
+}

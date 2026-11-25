@@ -1,0 +1,11 @@
+streamlit>=1.40.0
+google-genai>=1.0.0
+SpeechRecognition>=3.10.0
+gTTS>=2.5.0
+pandas>=2.0.0
+plotly>=5.20.0
+python-dotenv>=1.0.0
+SQLAlchemy>=2.0.0
+pytest>=8.0.0
+# Optional, only if you point DATABASE_URL at PostgreSQL:
+# psycopg2-binary>=2.9

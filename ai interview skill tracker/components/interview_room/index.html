@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:transparent;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#fff}
+#room{position:relative;width:100%;height:540px;border-radius:16px;overflow:hidden;
+  background:radial-gradient(circle at 50% 28%,#34306c 0%,#1a1838 55%,#0f0e22 100%);box-shadow:0 6px 24px rgba(0,0,0,.35)}
+#window{position:absolute;left:6%;top:9%;width:20%;height:34%;border-radius:8px;opacity:.35;
+  background:linear-gradient(160deg,#8ec5ff33,#6C5CE722);border:2px solid #ffffff22}
+#plant{position:absolute;right:7%;top:38%;width:46px;height:90px;opacity:.5}
+#avatarWrap{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center}
+#avatar{height:96%;max-width:100%}
+#status{position:absolute;top:12px;left:12px;padding:6px 14px 6px 12px;border-radius:999px;background:rgba(0,0,0,.5);
+  font-size:13px;display:flex;gap:8px;align-items:center;backdrop-filter:blur(4px)}
+.dot{width:10px;height:10px;border-radius:50%;background:#9aa0a6}
+.dot.speaking{background:#8c7dff;animation:pulse 1s infinite}
+.dot.listening{background:#2ecc71;animation:pulse 1s infinite}
+.dot.thinking{background:#f39c12;animation:pulse .6s infinite}
+@keyframes pulse{50%{transform:scale(1.55);opacity:.6}}
+#rec{position:absolute;top:12px;right:12px;display:none;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;
+  background:rgba(0,0,0,.5);font-size:13px}
+#rec i{width:10px;height:10px;border-radius:50%;background:#ff4757;animation:pulse 1s infinite}
+#done{display:none;position:absolute;top:52px;right:12px;padding:9px 16px;border:0;border-radius:10px;background:#2ecc71;
+  color:#062b14;font-weight:700;cursor:pointer;font-size:14px}
+#done:hover{background:#27ae60}
+#pip{position:absolute;right:14px;bottom:14px;width:176px;height:132px;border-radius:12px;overflow:hidden;
+  border:2px solid rgba(255,255,255,.55);background:#000;display:none;box-shadow:0 4px 16px rgba(0,0,0,.5)}
+#pip video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+#meter{position:absolute;left:0;bottom:0;height:5px;width:0;background:#2ecc71;transition:width .1s}
+#caption{position:absolute;left:50%;transform:translateX(-50%);bottom:16px;width:min(62%,600px);max-height:34%;overflow:auto;
+  padding:10px 16px;border-radius:12px;background:rgba(0,0,0,.62);font-size:15px;line-height:1.4;text-align:center;
+  backdrop-filter:blur(4px)}
+#caption.you{border:1px solid #2ecc7188;color:#d9ffe8}
+#hint{position:absolute;left:50%;transform:translateX(-50%);bottom:4px;font-size:11px;opacity:.7;white-space:nowrap}
+#start{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  background:rgba(10,9,28,.82);text-align:center;padding:20px;z-index:5}
+#start h2{margin:0;font-size:22px}
+#start p{margin:0;max-width:430px;opacity:.85;font-size:14px;line-height:1.45}
+#startBtn{padding:13px 26px;border:0;border-radius:12px;background:#6C5CE7;color:#fff;font-size:16px;font-weight:700;cursor:pointer}
+#startBtn:hover{background:#5b4bd6}
+#err{color:#ff9f9f;font-size:13px;max-width:430px}
+</style>
+</head>
+<body>
+<div id="room">
+  <div id="window"></div>
+  <svg id="plant" viewBox="0 0 46 90"><path d="M23 90V40" stroke="#3b7a57" stroke-width="3"/><ellipse cx="14" cy="38" rx="10" ry="18" fill="#3b7a57" transform="rotate(-25 14 38)"/><ellipse cx="32" cy="30" rx="10" ry="20" fill="#47936a" transform="rotate(20 32 30)"/><rect x="9" y="72" width="28" height="18" rx="3" fill="#7a5a3c"/></svg>
+
+  <div id="avatarWrap">
+  <svg id="avatar" viewBox="0 0 400 440" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3cba9"/><stop offset="1" stop-color="#e3aa86"/></linearGradient>
+      <linearGradient id="blazer" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a3770"/><stop offset="1" stop-color="#18204a"/></linearGradient>
+      <clipPath id="mouthClip"><path id="mouthClipPath" d=""/></clipPath>
+    </defs>
+    <!-- body -->
+    <path d="M176 288 L176 330 Q200 354 224 330 L224 288 Z" fill="#dba883"/>
+    <path d="M28 440 C28 356 104 332 160 322 L240 322 C296 332 372 356 372 440 Z" fill="url(#blazer)"/>
+    <path d="M160 322 L200 398 L240 322 Z" fill="#f6f7fb"/>
+    <path d="M160 322 L200 398 L168 440 L112 440 L148 336 Z" fill="#33437f"/>
+    <path d="M240 322 L200 398 L232 440 L288 440 L252 336 Z" fill="#33437f"/>
+    <path d="M200 398 L190 440 L210 440 Z" fill="#c0392b"/>
+    <!-- head (animated) -->
+    <g id="head">
+      <path d="M106 190 C98 88 158 56 200 56 C250 56 308 92 294 190 C298 252 288 304 270 324 L130 324 C112 304 102 252 106 190 Z" fill="#2b1a12"/>
+      <ellipse cx="119" cy="208" rx="11" ry="19" fill="#e6b08c"/>
+      <ellipse cx="281" cy="208" rx="11" ry="19" fill="#e6b08c"/>
+      <path d="M118 190 C118 120 150 100 200 100 C250 100 282 120 282 190 C282 246 245 302 200 304 C155 302 118 246 118 190 Z" fill="url(#skin)"/>
+      <ellipse cx="150" cy="240" rx="15" ry="10" fill="#ef8f8f" opacity=".2"/>
+      <ellipse cx="250" cy="240" rx="15" ry="10" fill="#ef8f8f" opacity=".2"/>
+      <!-- eyes -->
+      <g id="eyeL">
+        <ellipse cx="168" cy="194" rx="17" ry="10.5" fill="#fff"/>
+        <g class="iris"><circle cx="168" cy="194" r="7.8" fill="#4a3426"/><circle cx="168" cy="194" r="3.8" fill="#111"/><circle cx="171" cy="191" r="2" fill="#fff"/></g>
+        <ellipse class="lid" cx="168" cy="194" rx="18.5" ry="0" fill="#eab992"/>
+        <path d="M150 192 Q168 180 186 192" stroke="#3a2418" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+      </g>
+      <g id="eyeR">
+        <ellipse cx="232" cy="194" rx="17" ry="10.5" fill="#fff"/>
+        <g class="iris"><circle cx="232" cy="194" r="7.8" fill="#4a3426"/><circle cx="232" cy="194" r="3.8" fill="#111"/><circle cx="235" cy="191" r="2" fill="#fff"/></g>
+        <ellipse class="lid" cx="232" cy="194" rx="18.5" ry="0" fill="#eab992"/>
+        <path d="M214 192 Q232 180 250 192" stroke="#3a2418" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+      </g>
+      <g id="brows" stroke="#2b1a12" stroke-width="5" stroke-linecap="round" fill="none">
+        <path d="M148 172 Q167 162 187 170"/><path d="M213 170 Q233 162 252 172"/>
+      </g>
+      <path d="M200 206 Q192 232 197 240 Q206 245 215 238" stroke="#c68e6b" stroke-width="2.4" fill="none" opacity=".75" stroke-linecap="round"/>
+      <!-- mouth -->
+      <path id="mouthBase" d="" fill="#6b1a26"/>
+      <g clip-path="url(#mouthClip)">
+        <rect id="teeth" x="180" y="262" width="40" height="6" rx="2" fill="#fff"/>
+        <ellipse id="tongue" cx="200" cy="284" rx="12" ry="5" fill="#d9707a" opacity="0"/>
+      </g>
+      <path id="mouthLip" d="" fill="none" stroke="#c0626d" stroke-width="2.6" stroke-linejoin="round"/>
+      <!-- fringe -->
+      <path d="M110 188 C104 100 150 76 206 78 C260 80 296 108 290 188 C272 150 246 128 202 124 C160 128 130 150 110 188 Z" fill="#2b1a12"/>
+    </g>
+  </svg>
+  </div>
+
+  <div id="status"><span class="dot" id="dot"></span><span id="statusText">Waiting to start</span></div>
+  <div id="rec"><i></i><span id="timer">0:00</span></div>
+  <button id="done">✔ Done answering</button>
+  <div id="pip"><video id="cam" autoplay muted playsinline></video><div id="meter"></div></div>
+  <div id="caption" style="display:none"></div>
+  <div id="hint"></div>
+
+  <div id="start">
+    <h2>🎥 Join the interview room</h2>
+    <p>Your interviewer will speak each question aloud. Answer out loud when it is your turn: your camera and microphone
+       are recorded and saved so you (and the administrator) can review them. Please allow camera and microphone access.</p>
+    <button id="startBtn">Join &amp; start</button>
+    <div id="err"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+// ---------------------------------------------------------------- Streamlit component protocol (no build step)
+function post(type, payload){ window.parent.postMessage(Object.assign({isStreamlitMessage:true, type:type}, payload||{}), "*"); }
+function sendValue(v){ post("streamlit:setComponentValue", {value:v, dataType:"json"}); }
+window.addEventListener("message", function(ev){
+  var d = ev.data;
+  if(d && d.type === "streamlit:render"){ args = d.args || {}; onRender(); }
+});
+post("streamlit:componentReady", {apiVersion:1});
+post("streamlit:setFrameHeight", {height:552});
+
+// ---------------------------------------------------------------- state
+var $ = function(id){ return document.getElementById(id); };
+var args = null, started = false, stream = null, hasVideo = false;
+var lastSayId = null, turnToken = 0, phase = "idle";
+var talking = false, listening = false;
+var recV = null, recA = null, chunksV = [], chunksA = [], mimeV = "", mimeA = "";
+var recog = null, finalText = "", interimText = "", lastRecogTime = 0;
+var monitorId = null, audioCtx = null, analyser = null, buf = null, listenStart = 0;
+
+function setPhase(p, label){
+  phase = p;
+  $("dot").className = "dot " + p;
+  var names = {idle:"Waiting to start", speaking:(args && args.avatar_name || "Interviewer") + " is speaking",
+               listening:"Your turn: I'm listening", thinking:(args && args.avatar_name || "Interviewer") + " is thinking…",
+               done:"Interview complete"};
+  $("statusText").textContent = label || names[p] || p;
+  $("done").style.display = p === "listening" ? "block" : "none";
+  $("rec").style.display = p === "listening" ? "flex" : "none";
+}
+function caption(text, cls){
+  var c = $("caption"); c.style.display = text ? "block" : "none"; c.className = cls || ""; c.textContent = text || "";
+  c.scrollTop = c.scrollHeight;
+}
+
+// ---------------------------------------------------------------- avatar animation
+var head = $("head"), mouthBase = $("mouthBase"), mouthLip = $("mouthLip"), mouthClipPath = $("mouthClipPath");
+var teeth = $("teeth"), tongue = $("tongue"), brows = $("brows");
+var irises = document.querySelectorAll(".iris"), lids = document.querySelectorAll(".lid");
+var mouthOpen = 0, targetOpen = 0, wide = 1, targetWide = 1, nextSyllable = 0, pulse = 0;
+var blinkAt = 2500, blinkStart = -1, lookX = 0, lookY = 0;
+
+function drawMouth(o, w){
+  var cx = 200, cy = 266, hw = 24 * w, smile = talking ? 1 : 3.5;
+  var top = cy - 1, low = cy + 1 + o * 26;
+  var d = "M " + (cx-hw) + " " + (cy-smile) +
+    " Q " + (cx-hw/2) + " " + (top-3-o*1.5) + " " + cx + " " + (top-2) +
+    " Q " + (cx+hw/2) + " " + (top-3-o*1.5) + " " + (cx+hw) + " " + (cy-smile) +
+    " Q " + (cx+hw/2) + " " + (low+5) + " " + cx + " " + (low+6) +
+    " Q " + (cx-hw/2) + " " + (low+5) + " " + (cx-hw) + " " + (cy-smile) + " Z";
+  mouthBase.setAttribute("d", d); mouthLip.setAttribute("d", d); mouthClipPath.setAttribute("d", d);
+  mouthBase.setAttribute("fill", o < 0.08 ? "#c0626d" : "#6b1a26");
+  teeth.setAttribute("x", cx - hw * 0.72); teeth.setAttribute("width", hw * 1.44);
+  teeth.setAttribute("y", top - 3); teeth.setAttribute("height", Math.min(8, 2 + o * 9));
+  teeth.setAttribute("opacity", o > 0.12 ? 1 : 0);
+  tongue.setAttribute("cy", low + 3); tongue.setAttribute("opacity", o > 0.45 ? 0.9 : 0);
+}
+
+function frame(t){
+  // lip-sync: random syllable-like openings while speaking; word boundaries add emphasis
+  if(talking){
+    if(t > nextSyllable){
+      var r = Math.random();
+      targetOpen = r < 0.16 ? 0.04 : (r < 0.55 ? 0.3 + Math.random()*0.25 : 0.62 + Math.random()*0.3);
+      targetWide = Math.random() < 0.4 ? 0.78 : 1.06;
+      nextSyllable = t + 85 + Math.random()*110;
+    }
+    if(pulse > 0){ targetOpen = Math.max(targetOpen, 0.72); pulse = 0; }
+  } else { targetOpen = 0; targetWide = 1; }
+  mouthOpen += (targetOpen - mouthOpen) * 0.38; wide += (targetWide - wide) * 0.3;
+  drawMouth(mouthOpen, wide);
+
+  // blinking
+  var lid = 0;
+  if(blinkStart < 0 && t > blinkAt){ blinkStart = t; }
+  if(blinkStart >= 0){
+    var k = (t - blinkStart) / 150;
+    if(k >= 1){ blinkStart = -1; blinkAt = t + 2200 + Math.random()*3200; } else { lid = Math.sin(k * Math.PI); }
+  }
+  for(var i = 0; i < lids.length; i++){ lids[i].setAttribute("ry", (10.8 * lid).toFixed(2)); }
+
+  // gaze: look at camera when speaking/listening, glance up-left when thinking
+  var gx = 0, gy = 0;
+  if(phase === "thinking"){ gx = -3 + Math.sin(t/900)*1.2; gy = -3; }
+  else if(phase === "listening"){ gx = Math.sin(t/2300)*1.2; gy = 0.5; }
+  else { gx = Math.sin(t/3100)*1.6; gy = Math.sin(t/2700)*0.8; }
+  lookX += (gx - lookX) * 0.1; lookY += (gy - lookY) * 0.1;
+  for(var j = 0; j < irises.length; j++){ irises[j].setAttribute("transform", "translate(" + lookX.toFixed(2) + " " + lookY.toFixed(2) + ")"); }
+
+  // eyebrows: lift on emphasis / while listening
+  var browY = talking ? -2.5 * mouthOpen : (phase === "listening" ? -2 : (phase === "thinking" ? -3 : 0));
+  brows.setAttribute("transform", "translate(0 " + browY.toFixed(2) + ")");
+
+  // head: breathing sway, speaking bob, listening nod
+  var sway = Math.sin(t/1100) * 1.1;
+  var bob = talking ? Math.sin(t/170) * 1.3 : Math.sin(t/1500) * 0.7;
+  var nod = phase === "listening" ? Math.sin(t/900) * 1.6 : 0;
+  var tilt = phase === "thinking" ? -3 : 0;
+  head.setAttribute("transform", "translate(0 " + bob.toFixed(2) + ") rotate(" + (sway + nod + tilt).toFixed(2) + " 200 330)");
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+drawMouth(0, 1);
+
+// ---------------------------------------------------------------- speech output (browser TTS)
+function pickVoice(){
+  var vs = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+  if(!vs.length) return null;
+  var en = vs.filter(function(v){ return v.lang && v.lang.toLowerCase().indexOf("en") === 0; });
+  var pref = /(aria|jenny|zira|samantha|natasha|libby|google uk english female|google us english|female)/i;
+  return en.find(function(v){ return pref.test(v.name); }) || en[0] || vs[0];
+}
+if(window.speechSynthesis){ speechSynthesis.onvoiceschanged = function(){}; }
+
+function speakChunk(text, token){
+  return new Promise(function(resolve){
+    var words = text.split(/\s+/).length, rate = (args && args.rate) || 1;
+    var est = words * 430 / rate + 2500, finished = false, timer = null;
+    function fin(){ if(finished) return; finished = true; clearTimeout(timer); resolve(); }
+    timer = setTimeout(function(){ if(window.speechSynthesis) speechSynthesis.cancel(); fin(); }, est * 2 + 3000);
+    if(!window.speechSynthesis){ setTimeout(fin, est); return; }   // silent fallback: animate for estimated time
+    var u = new SpeechSynthesisUtterance(text), v = pickVoice();
+    if(v){ u.voice = v; u.lang = v.lang; } else { u.lang = "en-US"; }
+    u.rate = rate; u.pitch = 1.06;
+    u.onboundary = function(){ pulse = 1; };
+    u.onend = fin; u.onerror = fin;
+    speechSynthesis.speak(u);
+  });
+}
+async function speak(text, token){
+  setPhase("speaking"); caption(text, "");
+  talking = true;
+  var parts = text.match(/[^.!?]+[.!?]*\s*/g) || [text];      // sentence chunks avoid Chrome's long-utterance cut-off
+  for(var i = 0; i < parts.length; i++){
+    if(token !== turnToken){ break; }
+    var p = parts[i].trim(); if(!p) continue;
+    await speakChunk(p, token);
+    if(i < parts.length - 1){ talking = false; await sleep(160); talking = true; }
+  }
+  talking = false;
+}
+function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+
+// ---------------------------------------------------------------- turn handling
+function onRender(){
+  if(!args) return;
+  if(!started){ return; }
+  if(args.say_id !== lastSayId){ runTurn(); }
+}
+async function runTurn(){
+  var token = ++turnToken;
+  lastSayId = args.say_id;
+  cancelCapture(false);
+  if(window.speechSynthesis) speechSynthesis.cancel();
+  var myArgs = args;
+  await speak(myArgs.say, token);
+  if(token !== turnToken) return;
+  if(myArgs.record){ await listen(token, myArgs); }
+  else { setPhase("done"); caption(myArgs.say, ""); }
+}
+
+// ---------------------------------------------------------------- camera / microphone
+function graceProctor(ms){ try{ window.parent.__proctorGraceUntil = Date.now() + ms; }catch(e){} }
+async function begin(){
+  $("err").textContent = "";
+  graceProctor(20000);                       // permission prompts steal focus: do not count them as violations
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({
+      video:{width:{ideal:640}, height:{ideal:480}, facingMode:"user"},
+      audio:{echoCancellation:true, noiseSuppression:true}});
+    hasVideo = true;
+  }catch(e1){
+    try{
+      stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true}});
+      hasVideo = false;
+    }catch(e2){
+      var msg = (e2 && e2.name ? e2.name + ": " : "") + (e2 && e2.message ? e2.message : "camera/microphone unavailable");
+      $("err").textContent = "Could not access the microphone/camera (" + msg + "). Allow access in the browser address bar, or use Classic mode.";
+      sendValue({type:"error", error:msg, id:"error-" + Date.now()});
+      return;
+    }
+  }
+  graceProctor(4000);
+  if(hasVideo){ $("cam").srcObject = stream; $("pip").style.display = "block"; }
+  try{
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    var src = audioCtx.createMediaStreamSource(new MediaStream(stream.getAudioTracks()));
+    analyser = audioCtx.createAnalyser(); analyser.fftSize = 1024; src.connect(analyser);
+    buf = new Float32Array(analyser.fftSize);
+  }catch(e){ analyser = null; }
+  $("start").style.display = "none";
+  started = true;
+  if(args){ runTurn(); }
+}
+$("startBtn").addEventListener("click", begin);
+$("done").addEventListener("click", function(){ finishListening("manual"); });
+
+function pickMime(list){
+  if(!window.MediaRecorder) return "";
+  for(var i = 0; i < list.length; i++){ if(MediaRecorder.isTypeSupported(list[i])) return list[i]; }
+  return "";
+}
+function rms(){
+  if(!analyser) return 0;
+  analyser.getFloatTimeDomainData(buf);
+  var s = 0; for(var i = 0; i < buf.length; i++){ s += buf[i]*buf[i]; }
+  return Math.sqrt(s / buf.length);
+}
+function fmt(sec){ var m = Math.floor(sec/60), s = Math.floor(sec%60); return m + ":" + (s < 10 ? "0" : "") + s; }
+
+function startRecognition(token, lang){
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ $("hint").textContent = "Live captions are not supported in this browser; your audio will be transcribed on the server."; return; }
+  recog = new SR(); recog.lang = lang || "en-US"; recog.continuous = true; recog.interimResults = true;
+  recog.onresult = function(e){
+    var interim = "";
+    for(var i = e.resultIndex; i < e.results.length; i++){
+      var r = e.results[i];
+      if(r.isFinal){ finalText += r[0].transcript + " "; } else { interim += r[0].transcript; }
+    }
+    interimText = interim; lastRecogTime = Date.now();
+    caption((finalText + interim).trim() || "Listening…", "you");
+  };
+  recog.onerror = function(){};
+  recog.onend = function(){ if(listening && token === turnToken){ try{ recog.start(); }catch(e){} } };
+  try{ recog.start(); }catch(e){}
+}
+
+async function listen(token, a){
+  listening = true; listenStart = Date.now(); finalText = ""; interimText = ""; chunksV = []; chunksA = [];
+  setPhase("listening"); caption("Go ahead, I'm listening…", "you");
+  $("hint").textContent = "Answer naturally. I'll continue when you pause, or press “Done answering”.";
+  mimeV = pickMime(["video/webm;codecs=vp8,opus", "video/webm", "video/mp4"]);
+  mimeA = pickMime(["audio/webm;codecs=opus", "audio/webm", "audio/mp4"]);
+  try{
+    var oV = {videoBitsPerSecond:700000, audioBitsPerSecond:64000}; if(mimeV) oV.mimeType = mimeV;
+    var oA = {audioBitsPerSecond:64000}; if(mimeA) oA.mimeType = mimeA;
+    recV = hasVideo ? new MediaRecorder(stream, oV) : null;
+    recA = new MediaRecorder(new MediaStream(stream.getAudioTracks()), oA);
+    if(recV){ recV.ondataavailable = function(e){ if(e.data && e.data.size) chunksV.push(e.data); }; recV.start(1000); }
+    recA.ondataavailable = function(e){ if(e.data && e.data.size) chunksA.push(e.data); }; recA.start(1000);
+  }catch(e){
+    $("hint").textContent = "Recording is not supported in this browser: " + e.message;
+  }
+  startRecognition(token, a.lang);
+
+  var t0 = Date.now(), lastVoice = t0, voiceMs = 0, spoke = false, noise = 0, noiseN = 0, thr = 0.02;
+  clearInterval(monitorId);
+  monitorId = setInterval(function(){
+    if(token !== turnToken){ clearInterval(monitorId); return; }
+    var now = Date.now(), el = (now - t0) / 1000, level = rms();
+    $("timer").textContent = fmt(el);
+    $("meter").style.width = Math.min(100, level * 600) + "%";
+    if(el < 0.6){ noise += level; noiseN++; thr = Math.max(0.02, (noise / Math.max(1, noiseN)) * 3); }
+    else {
+      var active = level > thr || (now - lastRecogTime < 1000);
+      if(active){ lastVoice = now; voiceMs += 150; if(voiceMs > 600) spoke = true; }
+    }
+    if(el >= a.max_seconds){ finishListening("max"); }
+    else if(spoke && now - lastVoice > a.silence_seconds * 1000){ finishListening("silence"); }
+    else if(!spoke && el > a.no_speech_seconds){ finishListening("nospeech"); }
+  }, 150);
+  t0 = Date.now();
+}
+
+function stopRecorder(rec){
+  return new Promise(function(resolve){
+    if(!rec || rec.state === "inactive"){ resolve(); return; }
+    rec.onstop = function(){ resolve(); };
+    try{ rec.stop(); }catch(e){ resolve(); }
+  });
+}
+function blobToB64(blob){
+  return new Promise(function(resolve){
+    var r = new FileReader();
+    r.onloadend = function(){
+      var url = String(r.result || ""), marker = ";base64,", i = url.indexOf(marker);
+      resolve(i >= 0 ? url.slice(i + marker.length) : "");   // MIME like "video/webm;codecs=vp8,opus" contains a comma
+    };
+    r.readAsDataURL(blob);
+  });
+}
+function cancelCapture(){
+  listening = false; clearInterval(monitorId);
+  try{ if(recog) recog.stop(); }catch(e){}
+  try{ if(recV && recV.state !== "inactive") recV.stop(); }catch(e){}
+  try{ if(recA && recA.state !== "inactive") recA.stop(); }catch(e){}
+  recog = null; $("meter").style.width = "0";
+}
+
+async function finishListening(reason){
+  if(!listening) return;
+  var token = turnToken, id = lastSayId;
+  var elapsed = (Date.now() - listenStart) / 1000;
+  listening = false; clearInterval(monitorId);
+  try{ if(recog) recog.stop(); }catch(e){}
+  setPhase("thinking"); caption("Thanks, let me think about that…", ""); $("hint").textContent = "";
+  await Promise.all([stopRecorder(recV), stopRecorder(recA)]);
+  if(token !== turnToken) return;
+  var vBlob = chunksV.length ? new Blob(chunksV, {type:(recV && recV.mimeType) || mimeV || "video/webm"}) : null;
+  var aBlob = chunksA.length ? new Blob(chunksA, {type:(recA && recA.mimeType) || mimeA || "audio/webm"}) : null;
+  var vB64 = vBlob ? await blobToB64(vBlob) : "";
+  var aB64 = aBlob ? await blobToB64(aBlob) : "";
+  sendValue({
+    type:"answer", id:id, reason:reason, duration:elapsed,
+    transcript:(finalText + interimText).trim(),
+    video_b64:vB64, audio_b64:aB64,
+    v_mime:vBlob ? vBlob.type : "", a_mime:aBlob ? aBlob.type : ""
+  });
+}
+
+window.addEventListener("pagehide", function(){
+  cancelCapture();
+  if(stream){ stream.getTracks().forEach(function(t){ t.stop(); }); }
+  if(window.speechSynthesis) speechSynthesis.cancel();
+});
+</script>
+</body>
+</html>

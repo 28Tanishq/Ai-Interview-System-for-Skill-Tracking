@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="margin:0;background:transparent">
+<script>
+"use strict";
+// Invisible proctoring component: counts "window violations" (leaving the tab/window) and reports them to Python.
+// It watches the PARENT page (Streamlit components are same-origin), and falls back to its own frame if that is blocked.
+function post(type, payload){ window.parent.postMessage(Object.assign({isStreamlitMessage:true, type:type}, payload||{}), "*"); }
+function sendValue(v){ post("streamlit:setComponentValue", {value:v, dataType:"json"}); }
+
+var args = {limit:3, violations:0, enabled:true, grace_ms:6000};
+var P = window, sameOrigin = false;
+try{ void window.parent.document.body; P = window.parent; sameOrigin = true; }catch(e){ P = window; }
+var D = P.document;
+var count = 0, away = false, terminated = false, seq = 0, hideTimer = null, armedAt = Date.now();
+
+window.addEventListener("message", function(ev){
+  var d = ev.data;
+  if(d && d.type === "streamlit:render"){
+    args = d.args || args;
+    count = Math.max(count, args.violations || 0);     // the server's count is authoritative
+    if(count >= args.limit){ showTerminated(); }
+  }
+});
+post("streamlit:componentReady", {apiVersion:1});
+post("streamlit:setFrameHeight", {height:0});
+
+function armed(){
+  if(args.enabled === false || terminated) return false;
+  if(Date.now() - armedAt < (args.grace_ms || 6000)) return false;       // page just loaded
+  if(Date.now() < (P.__proctorGraceUntil || 0)) return false;            // camera/mic permission prompt in progress
+  return true;
+}
+
+function overlay(){
+  if(!sameOrigin) return null;
+  var d = D.getElementById("proctor-overlay");
+  if(!d){
+    d = D.createElement("div"); d.id = "proctor-overlay";
+    d.setAttribute("style", "position:fixed;top:0;left:0;right:0;z-index:2147483647;display:none;padding:14px 20px;" +
+      "text-align:center;font:700 16px system-ui,-apple-system,Segoe UI,sans-serif;color:#fff;box-shadow:0 8px 28px rgba(0,0,0,.4)");
+    D.body.appendChild(d);
+  }
+  return d;
+}
+function showWarning(n){
+  var d = overlay(); if(!d) return;
+  var left = args.limit - n;
+  d.style.background = "#d35400";
+  d.textContent = "\u26A0\uFE0F Window violation " + n + " of " + args.limit + ": please stay on the interview window. " +
+                  left + " more and the interview will end automatically.";
+  d.style.display = "block";
+  clearTimeout(hideTimer); hideTimer = setTimeout(function(){ d.style.display = "none"; }, 7000);
+}
+function showTerminated(){
+  terminated = true;
+  var d = overlay(); if(!d) return;
+  d.style.background = "#c0392b";
+  d.textContent = "\u26D4 Interview ended automatically after " + args.limit + " window violations.";
+  d.style.display = "block";
+}
+
+function violation(kind, detail){
+  if(!armed() || away) return;       // one violation per "away" episode (tab hidden + blur count once)
+  away = true; count++; seq++;
+  sendValue({type:"violation", id:"v" + Date.now() + "-" + seq + "-" + Math.random().toString(36).slice(2, 7),
+             kind:kind, detail:detail, n:count, ts:Date.now()});
+  if(count >= args.limit){ showTerminated(); } else { showWarning(count); }
+}
+function back(){ away = false; }
+
+function onVisibility(){
+  if(D.hidden){ violation("tab_hidden", "Switched to another tab or minimised the window"); } else { back(); }
+}
+function onBlur(){
+  setTimeout(function(){
+    // focus moving into an iframe (e.g. the avatar room) keeps D.hasFocus() true, so that is not a violation
+    if(!D.hasFocus() && !D.hidden){ violation("window_blur", "Window lost focus (another window or application)"); }
+  }, 300);
+}
+function onFocus(){ if(!D.hidden) back(); }
+
+// make sure a re-mounted component never leaves duplicate listeners behind
+if(P.__proctorCleanup){ try{ P.__proctorCleanup(); }catch(e){} }
+D.addEventListener("visibilitychange", onVisibility);
+P.addEventListener("blur", onBlur);
+P.addEventListener("focus", onFocus);
+function cleanup(){
+  D.removeEventListener("visibilitychange", onVisibility);
+  P.removeEventListener("blur", onBlur);
+  P.removeEventListener("focus", onFocus);
+  try{ var o = D.getElementById("proctor-overlay"); if(o && o.parentNode){ o.parentNode.removeChild(o); } }catch(e){}
+  if(P.__proctorCleanup === cleanup){ P.__proctorCleanup = null; }
+}
+P.__proctorCleanup = cleanup;
+window.addEventListener("pagehide", cleanup);
+window.addEventListener("unload", cleanup);
+</script>
+</body></html>
